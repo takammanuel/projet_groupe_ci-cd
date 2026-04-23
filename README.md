@@ -21,7 +21,7 @@ cd projet_groupe_ci-cd
 ### 2. Installation du Backend (Laravel)
 
 ```bash
-cd evaluation_SN
+cd backend
 
 # Installer les dépendances
 composer install
@@ -32,17 +32,20 @@ cp .env.example .env
 # Générer la clé d'application
 php artisan key:generate
 
-# Configurer la base de données (SQLite par défaut)
-# Le fichier .env est déjà configuré pour SQLite
+# Configurer la base de données MySQL
+# Le fichier .env est configuré pour MySQL
+# Assurez-vous que MySQL est installé et en cours d'exécution
 
-# Exécuter les migrations
+# Créer la base de données
+mysql -u root -p
+CREATE DATABASE evaluation_sn;
+exit;
+
+# Exécuter les migrations avec les seeders
 php artisan migrate:fresh --seed
 
-# Créer un utilisateur de test
-php artisan tinker --execute="App\Models\User::create(['name' => 'Admin', 'email' => 'admin@test.com', 'password' => Hash::make('admin123')]);"
-
 # Lancer le serveur backend
-php -S localhost:8000 -t public
+php artisan serve
 ```
 
 Le backend sera accessible sur `http://localhost:8000`
@@ -67,8 +70,8 @@ Le frontend sera accessible sur `http://localhost:5173` (ou un autre port si 517
 
 Utilisez ces identifiants pour vous connecter :
 
-- **Email:** `admin@test.com`
-- **Mot de passe:** `admin123`
+- **Email:** `test@test.com` ou `test@example.com`
+- **Mot de passe:** `password`
 
 ## 📁 Structure du Projet
 
@@ -94,8 +97,10 @@ Utilisez ces identifiants pour vous connecter :
 ### Backend (Laravel)
 - API REST avec Laravel 11
 - Authentification avec Laravel Sanctum
-- Base de données SQLite
-- Gestion des utilisateurs
+- Base de données MySQL
+- Gestion des abonnés, factures et réclamations
+- Système de cache optimisé
+- Monitoring des performances
 - Documentation API complète
 
 ### Frontend (React)
@@ -111,7 +116,7 @@ Utilisez ces identifiants pour vous connecter :
 ### Backend
 - Laravel 11
 - PHP 8.2+
-- SQLite
+- MySQL
 - Laravel Sanctum (authentification)
 
 ### Frontend
@@ -124,14 +129,34 @@ Utilisez ces identifiants pour vous connecter :
 ## 📝 API Endpoints
 
 ### Authentification
+- `POST /api/register` - Inscription
 - `POST /api/login` - Connexion
 - `POST /api/logout` - Déconnexion
 - `GET /api/me` - Profil utilisateur
 
-### Recettes (à venir)
-- `GET /api/recettes` - Liste des recettes
-- `POST /api/recettes` - Créer une recette
-- `GET /api/recettes/{id}` - Détails d'une recette
+### Abonnés
+- `GET /api/abonne` - Liste des abonnés
+- `POST /api/abonne` - Créer un abonné
+- `GET /api/abonne/{id}` - Détails d'un abonné
+- `PUT /api/abonne/{id}` - Modifier un abonné
+- `DELETE /api/abonne/{id}` - Supprimer un abonné
+
+### Factures
+- `GET /api/factures` - Liste des factures
+- `POST /api/factures` - Créer une facture
+- `GET /api/factures/{id}` - Détails d'une facture
+- `GET /api/abonne/{abonneId}/factures` - Factures d'un abonné
+
+### Réclamations
+- `GET /api/reclamations` - Liste des réclamations
+- `POST /api/reclamations` - Créer une réclamation
+- `GET /api/reclamations/{id}` - Détails d'une réclamation
+
+### Performance & Cache
+- `GET /api/cache/stats` - Statistiques du cache
+- `DELETE /api/cache/clear` - Vider le cache
+- `GET /api/performance/queries` - Statistiques des requêtes
+- `GET /api/logs` - Logs de l'application
 
 ## 🎨 Design
 
