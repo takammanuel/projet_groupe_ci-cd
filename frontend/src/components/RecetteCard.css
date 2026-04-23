@@ -1,0 +1,77 @@
+.recette-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recette-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
+}
+
+.badge-entrees {
+  background-color: #FF6B35;
+  color: white;
+}
+
+.badge-desserts {
+  background-color: #FF6B35;
+  color: white;
+}
+
+.badge-plats {
+  background-color: #FF6B35;
+  color: white;
+}
+
+.recette-nom {
+  font-size: 20px;
+  color: #1A1A1A;
+  margin: 0;
+  font-weight: 600;
+}
+
+.recette-ingredients {
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+.recette-ingredients strong {
+  color: #1A1A1A;
+}
+
+.btn-detail {
+  background-color: #FF6B35;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+}
+
+.btn-detail:hover {
+  background-color: #E55A2B;
+}

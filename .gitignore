@@ -1,0 +1,35 @@
+# Kiro
+.kiro/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backend Laravel
+evaluation_SN/vendor/
+evaluation_SN/node_modules/
+evaluation_SN/.env
+evaluation_SN/storage/*.key
+evaluation_SN/storage/logs/
+evaluation_SN/storage/framework/cache/
+evaluation_SN/storage/framework/sessions/
+evaluation_SN/storage/framework/views/
+evaluation_SN/bootstrap/cache/
+evaluation_SN/.phpunit.result.cache
+
+# Frontend React
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

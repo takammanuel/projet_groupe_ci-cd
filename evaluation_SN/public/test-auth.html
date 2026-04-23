@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Authentification API</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #333; margin-bottom: 30px; text-align: center; }
+        .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #4CAF50; margin-bottom: 15px; font-size: 18px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #555; font-weight: 500; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        button { padding: 12px 24px; margin: 5px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: 500; transition: background 0.3s; }
+        button:hover { background: #45a049; }
+        button.secondary { background: #2196F3; }
+        button.secondary:hover { background: #0b7dda; }
+        button.danger { background: #f44336; }
+        button.danger:hover { background: #da190b; }
+        #result { background: #f9f9f9; padding: 15px; border-radius: 4px; margin-top: 15px; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 12px; max-height: 400px; overflow-y: auto; border: 1px solid #ddd; }
+        .token-display { background: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0; word-break: break-all; font-family: monospace; font-size: 12px; border: 1px solid #ffc107; }
+        .status { padding: 8px 12px; border-radius: 4px; display: inline-block; margin: 10px 0; font-weight: 500; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Test Authentification API - Laravel Sanctum</h1>
+        
+        <div class="grid">
+            <!-- Section Inscription -->
+            <div class="section">
+                <h2>1. Inscription</h2>
+                <div class="form-group">
+                    <label>Nom:</label>
+                    <input type="text" id="reg_name" value="Test User">
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="reg_email" value="test@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe:</label>
+                    <input type="password" id="reg_password" value="password123">
+                </div>
+                <div class="form-group">
+                    <label>Confirmer mot de passe:</label>
+                    <input type="password" id="reg_password_confirmation" value="password123">
+                </div>
+                <button onclick="register()">S'inscrire</button>
+            </div>
+
+            <!-- Section Connexion -->
+            <div class="section">
+                <h2>2. Connexion</h2>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="login_email" value="test@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe:</label>
+                    <input type="password" id="login_password" value="password123">
+                </div>
+                <button onclick="login()">Se connecter</button>
+            </div>
+        </div>
+
+        <!-- Token Display -->
+        <div class="section">
+            <h2>Token d'accès</h2>
+            <div id="token-status" class="status" style="display:none;"></div>
+            <div id="token-display" class="token-display" style="display:none;"></div>
+        </div>
+
+        <!-- Actions protégées -->
+        <div class="section">
+            <h2>3. Actions protégées (nécessitent un token)</h2>
+            <button class="secondary" onclick="getProfile()">Voir mon profil</button>
+            <button class="secondary" onclick="getAbonnes()">Liste des abonnés</button>
+            <button class="secondary" onclick="createAbonne()">Créer un abonné</button>
+            <button class="danger" onclick="logout()">Se déconnecter</button>
+        </div>
+
+        <!-- Créer un abonné -->
+        <div class="section">
+            <h2>4. Créer un abonné (protégé)</h2>
+            <div class="grid">
+                <div class="form-group">
+                    <label>Nom:</label>
+                    <input type="text" id="abonne_nom" value="Dupont">
+                </div>
+                <div class="form-group">
+                    <label>Prénom:</label>
+                    <input type="text" id="abonne_prenom" value="Jean">
+                </div>
+                <div class="form-group">
+                    <label>Ville:</label>
+                    <select id="abonne_ville">
+                        <option value="Yaounde">Yaounde</option>
+                        <option value="Douala" selected>Douala</option>
+                        <option value="Bafoussam">Bafoussam</option>
+                        <option value="Garoua">Garoua</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quartier:</label>
+                    <input type="text" id="abonne_quartier" value="Akwa">
+                </div>
+                <div class="form-group">
+                    <label>Numéro Compteur:</label>
+                    <input type="text" id="abonne_numero" value="TEST001">
+                </div>
+                <div class="form-group">
+                    <label>Type Abonnement:</label>
+                    <select id="abonne_type">
+                        <option value="Domestique" selected>Domestique</option>
+                        <option value="Professionnel">Professionnel</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résultat -->
+        <div class="section">
+            <h2>Résultat</h2>
+            <div id="result">Les résultats s'afficheront ici...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/api';
+        let authToken = localStorage.getItem('auth_token') || null;
+
+        // Afficher le token au chargement
+        if (authToken) {
+            displayToken(authToken);
+        }
+
+        function displayToken(token) {
+            authToken = token;
+            localStorage.setItem('auth_token', token);
+            document.getElementById('token-display').textContent = token;
+            document.getElementById('token-display').style.display = 'block';
+            document.getElementById('token-status').textContent = '✓ Authentifié';
+            document.getElementById('token-status').className = 'status success';
+            document.getElementById('token-status').style.display = 'inline-block';
+        }
+
+        function clearToken() {
+            authToken = null;
+            localStorage.removeItem('auth_token');
+            document.getElementById('token-display').style.display = 'none';
+            document.getElementById('token-status').textContent = '✗ Non authentifié';
+            document.getElementById('token-status').className = 'status error';
+        }
+
+        function showResult(data, success = true) {
+            const result = document.getElementById('result');
+            result.textContent = JSON.stringify(data, null, 2);
+            result.style.borderLeft = success ? '4px solid #4CAF50' : '4px solid #f44336';
+        }
+
+        async function register() {
+            const data = {
+                name: document.getElementById('reg_name').value,
+                email: document.getElementById('reg_email').value,
+                password: document.getElementById('reg_password').value,
+                password_confirmation: document.getElementById('reg_password_confirmation').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayToken(result.access_token);
+                    showResult(result, true);
+                } else {
+                    showResult(result, false);
+                }
+            } catch (error) {
+                showResult({ error: error.message }, false);
+            }
+        }
+
+        async function login() {
+            const data = {
+                email: document.getElementById('login_email').value,
+                password: document.getElementById('login_password').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayToken(result.access_token);
+                    showResult(result, true);
+                } else {
+                    showResult(result, false);
+                }
+            } catch (error) {
+                showResult({ error: error.message }, false);
+            }
+        }
+
+        async function getProfile() {
+            if (!authToken) {
+                showResult({ error: 'Vous devez être connecté' }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                const result = await response.json();
+                showResult(result, response.ok);
+            } catch (error) {
+                showResult({ error: error.message }, false);
+            }
+        }
+
+        async function getAbonnes() {
+            if (!authToken) {
+                showResult({ error: 'Vous devez être connecté' }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/abonne`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                const result = await response.json();
+                showResult(result, response.ok);
+            } catch (error) {
+                showResult({ error: error.message }, false);
+            }
+        }
+
+        async function createAbonne() {
+            if (!authToken) {
+                showResult({ error: 'Vous devez être connecté' }, false);
+                return;
+            }
+
+            const data = {
+                nom: document.getElementById('abonne_nom').value,
+                prenom: document.getElementById('abonne_prenom').value,
+                ville: document.getElementById('abonne_ville').value,
+                quartier: document.getElementById('abonne_quartier').value,
+                numeroCompteur: document.getElementById('abonne_numero').value,
+                typeAbonnement: document.getElementById('abonne_type').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/abonne`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showResult(result, response.ok);
+            } catch (error) {
+                showResult({ error: error.message }, false);
+            }
+        }
+
+        async function logout() {
+            if (!authToken) {
+                showResult({ error: 'Vous n\'êtes pas connecté' }, false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    clearToken();
+                    showResult(result, true);
+                } else {
+                    showResult(result, false);
+                }
+            } catch (error) {
+                showResult({ error: error.message }, false);
+            }
+        }
+    </script>
+</body>
+</html>

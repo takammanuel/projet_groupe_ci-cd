@@ -1,0 +1,22 @@
+.home-container {
+  min-height: 100vh;
+  background-color: #F5F5F5;
+}
+
+.home-content {
+  display: flex;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 220px;
+  padding: 20px;
+  margin-top: 70px;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+  }
+}
