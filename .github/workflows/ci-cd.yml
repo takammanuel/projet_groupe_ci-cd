@@ -1,42 +1,41 @@
-name: CI/CD Pipeline - Groupe 5
+name: "🚀 CI/CD Pipeline - Groupe 5"
 
 on:
   push:
-    branches: [ main, develop, feature/ci-cd-pipeline  ]
+    branches: [main, develop, feature/ci-cd-pipeline]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  # ─────────────────────────────────────────
-  # JOB 1 : Tests Backend Laravel
-  # ─────────────────────────────────────────
-  test-backend:
-    name:  Tests Backend Laravel
+
+  # --- PARTIE 1 : TESTS BACKEND LARAVEL ---
+  backend-tests:
+    name: "🧪 Tests Backend Laravel"
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: "📦 Récupération du code source"
+        uses: actions/checkout@v4
 
-      - name: Setup PHP 8.4
+      - name: "🐘 Configuration PHP 8.4"
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: mbstring, pdo_mysql, bcmath, gd, exif, pcntl
 
-      - name: Copy .env
+      - name: "📄 Copie du fichier .env"
         working-directory: ./backend
         run: cp .env.example .env
 
-      - name: Install Composer dependencies
+      - name: "📦 Installation des dépendances Composer"
         working-directory: ./backend
         run: composer install --no-interaction --optimize-autoloader --no-dev
 
-      - name: Generate app key
+      - name: "🔑 Génération de la clé applicative"
         working-directory: ./backend
         run: php artisan key:generate
 
-      - name: Run Laravel tests
+      - name: "✅ Exécution des tests PHPUnit"
         working-directory: ./backend
         env:
           DB_CONNECTION: mysql
@@ -47,99 +46,91 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: ./vendor/bin/phpunit --testdox || true
 
-  # ─────────────────────────────────────────
-  # JOB 2 : Tests Frontend React
-  # ─────────────────────────────────────────
-  test-frontend:
-    name:  Tests Frontend React
+      - name: "✨ Logs de fin Backend"
+        run: |
+          echo "✅ Tests Backend terminés !"
+          echo "🕒 Heure : $(date)"
+          echo "🆔 Commit : ${{ github.sha }}"
+
+  # --- PARTIE 2 : BUILD FRONTEND REACT ---
+  frontend-build:
+    name: "⚛️ Build Frontend React"
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: "📦 Récupération du code source"
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: "🟢 Configuration Node.js 20"
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: "📦 Installation des dépendances npm"
         working-directory: ./frontend
         run: npm install
 
-      - name: Build frontend
+      - name: "🏗️ Build du Frontend"
         working-directory: ./frontend
         run: npm run build
 
-  # ─────────────────────────────────────────
-  # JOB 3 : Build Docker Images
-  # ─────────────────────────────────────────
-  build:
-    name:  Build Docker Images
+      - name: "📤 Sauvegarde du build"
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: ./frontend/dist/
+
+      - name: "✨ Logs de fin Frontend"
+        run: |
+          echo "✅ Build Frontend terminé !"
+          echo "🕒 Heure : $(date)"
+          echo "🆔 Commit : ${{ github.sha }}"
+
+  # --- PARTIE 3 : BUILD DOCKER IMAGES ---
+  docker-build:
+    name: "🐳 Build Docker Images"
+    needs: [backend-tests, frontend-build]
     runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: "📦 Récupération du code source"
+        uses: actions/checkout@v4
 
-      - name: Build Backend image
+      - name: "🐳 Build image Backend Laravel"
         run: docker build -t laravel-backend ./backend
 
-      - name: Build Frontend image
+      - name: "🐳 Build image Frontend React"
         run: docker build -t react-frontend ./frontend
 
-  # ─────────────────────────────────────────
-  # JOB 4 : Déploiement FTP vers O2Switch
-  # ─────────────────────────────────────────
-  deploy:
-    name:  Déploiement vers O2Switch
+      - name: "✨ Logs de fin Docker"
+        run: |
+          echo "✅ Build Docker terminé !"
+          echo "🕒 Heure : $(date)"
+          echo "🆔 Commit : ${{ github.sha }}"
+
+  # --- PARTIE 4 : DÉPLOIEMENT O2SWITCH (FTP) ---
+  deploy-o2switch:
+    name: "🚀 Déploiement O2Switch (FTP)"
+    needs: [docker-build]
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
-    needs: [build]
-    if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: "📦 Récupération du code source"
+        uses: actions/checkout@v4
 
-      - name: Setup PHP 8.4
-        uses: shivammathur/setup-php@v2
+      - name: "📥 Récupération du Build Frontend"
+        uses: actions/download-artifact@v4
         with:
-          php-version: '8.4'
-          extensions: mbstring, pdo_mysql, bcmath, gd, exif, pcntl
+          name: frontend-dist
+          path: ./dist-frontend
 
-      - name: Install Composer dependencies
-        working-directory: ./backend
-        run: composer install --no-interaction --optimize-autoloader --no-dev
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Build Frontend
-        working-directory: ./frontend
-        run: |
-          npm install
-          npm run build
-
-      - name: Copy .env pour déploiement
-        working-directory: ./backend
-        run: |
-          cp .env.example .env
-          sed -i 's/DB_DATABASE=.*/DB_DATABASE=${{ secrets.DB_DATABASE }}/' .env
-          sed -i 's/DB_USERNAME=.*/DB_USERNAME=${{ secrets.DB_USERNAME }}/' .env
-          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/' .env
-          sed -i 's/DB_HOST=.*/DB_HOST=${{ secrets.DB_HOST }}/' .env
-
-      - name: Generate app key
-        working-directory: ./backend
-        run: php artisan key:generate
-
-      - name: Deploy Backend via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: "🚀 Déploiement Backend via FTP"
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -147,16 +138,24 @@ jobs:
           local-dir: ./backend/
           server-dir: /groupe5/backend/
           exclude: |
+            **/vendor/
+            **/.env
             **/.git*
-            **/.git*/**
             **/node_modules/**
             **/tests/**
 
-      - name: Deploy Frontend via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: "🚀 Déploiement Frontend via FTP"
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./frontend/dist/
+          local-dir: ./dist-frontend/
           server-dir: /groupe5/frontend/
+
+      - name: "✨ Logs de fin Déploiement"
+        run: |
+          echo "✅ Déploiement FTP terminé avec succès !"
+          echo "🔗 URL : https://groupe5.cdwfs.net"
+          echo "🕒 Heure : $(date)"
+          echo "🆔 Commit : ${{ github.sha }}"
