@@ -1,0 +1,162 @@
+name: CI/CD Pipeline - Groupe 5
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # ─────────────────────────────────────────
+  # JOB 1 : Tests Backend Laravel
+  # ─────────────────────────────────────────
+  test-backend:
+    name:  Tests Backend Laravel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql, bcmath, gd, exif, pcntl
+
+      - name: Copy .env
+        working-directory: ./backend
+        run: cp .env.example .env
+
+      - name: Install Composer dependencies
+        working-directory: ./backend
+        run: composer install --no-interaction --optimize-autoloader --no-dev
+
+      - name: Generate app key
+        working-directory: ./backend
+        run: php artisan key:generate
+
+      - name: Run Laravel tests
+        working-directory: ./backend
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: 3306
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: php artisan test
+
+  # ─────────────────────────────────────────
+  # JOB 2 : Tests Frontend React
+  # ─────────────────────────────────────────
+  test-frontend:
+    name:  Tests Frontend React
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+  # ─────────────────────────────────────────
+  # JOB 3 : Build Docker Images
+  # ─────────────────────────────────────────
+  build:
+    name:  Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Backend image
+        run: docker build -t laravel-backend ./backend
+
+      - name: Build Frontend image
+        run: docker build -t react-frontend ./frontend
+
+  # ─────────────────────────────────────────
+  # JOB 4 : Déploiement FTP vers O2Switch
+  # ─────────────────────────────────────────
+  deploy:
+    name:  Déploiement vers O2Switch
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql, bcmath, gd, exif, pcntl
+
+      - name: Install Composer dependencies
+        working-directory: ./backend
+        run: composer install --no-interaction --optimize-autoloader --no-dev
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Copy .env pour déploiement
+        working-directory: ./backend
+        run: |
+          cp .env.example .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=${{ secrets.DB_DATABASE }}/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=${{ secrets.DB_USERNAME }}/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/' .env
+          sed -i 's/DB_HOST=.*/DB_HOST=${{ secrets.DB_HOST }}/' .env
+
+      - name: Generate app key
+        working-directory: ./backend
+        run: php artisan key:generate
+
+      - name: Deploy Backend via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./backend/
+          server-dir: /groupe5/backend/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+
+      - name: Deploy Frontend via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./frontend/dist/
+          server-dir: /groupe5/frontend/
