@@ -110,7 +110,7 @@ jobs:
           echo "🕒 Heure : $(date)"
           echo "🆔 Commit : ${{ github.sha }}"
 
-  # --- PARTIE 4 : DÉPLOIEMENT O2SWITCH (FTP) ---
+ # --- PARTIE 4 : DÉPLOIEMENT O2SWITCH (FTP) ---
   deploy-o2switch:
     name: "🚀 Déploiement O2Switch (FTP)"
     needs: [docker-build]
@@ -121,37 +121,42 @@ jobs:
 
     steps:
       - name: "📦 Récupération du code source"
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: "📥 Récupération du Build Frontend"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444306234a64ce7b34d7eb9c
         with:
           name: frontend-dist
           path: ./dist-frontend
 
+      - name: "📦 Installation de lftp"
+        run: sudo apt-get install -y lftp
+
       - name: "🚀 Déploiement Backend via FTP"
-        uses: SamKirkland/FTP-Deploy-Action@a4d43c3a2f5a43efe28e6c0558ad8e2cbc99571b
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./backend/
-          server-dir: /groupe5/backend/
-          exclude: |
-            **/vendor/
-            **/.env
-            **/.git*
-            **/node_modules/**
-            **/tests/**
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -e "
+            set ftp:ssl-allow no;
+            open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
+            mirror -R --delete --exclude .git --exclude vendor/ --exclude .env --exclude tests/ ./backend/ /groupe5/backend/;
+            quit
+          "
 
       - name: "🚀 Déploiement Frontend via FTP"
-        uses: SamKirkland/FTP-Deploy-Action@8dcaba9c0c74f894a789ba5b42ccd614e4af2fc5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist-frontend/
-          server-dir: /groupe5/frontend/
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -e "
+            set ftp:ssl-allow no;
+            open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
+            mirror -R --delete ./dist-frontend/ /groupe5/frontend/;
+            quit
+          "
 
       - name: "✨ Logs de fin Déploiement"
         run: |
