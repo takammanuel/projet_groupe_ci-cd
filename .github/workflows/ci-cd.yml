@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "🐘 Configuration PHP 8.4"
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@cf4cade2721270509d5b1c766ab3549210a39a2a
         with:
           php-version: '8.4'
           extensions: mbstring, pdo_mysql, bcmath, gd, exif, pcntl
@@ -130,7 +130,7 @@ jobs:
           path: ./dist-frontend
 
       - name: "🚀 Déploiement Backend via FTP"
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@a4d43c3a2f5a43efe28e6c0558ad8e2cbc99571b
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -145,7 +145,7 @@ jobs:
             **/tests/**
 
       - name: "🚀 Déploiement Frontend via FTP"
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@8dcaba9c0c74f894a789ba5b42ccd614e4af2fc5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
