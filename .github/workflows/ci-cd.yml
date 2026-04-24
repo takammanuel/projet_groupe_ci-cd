@@ -110,7 +110,7 @@ jobs:
           echo "🕒 Heure : $(date)"
           echo "🆔 Commit : ${{ github.sha }}"
 
- # --- PARTIE 4 : DÉPLOIEMENT O2SWITCH (FTP) ---
+  # --- PARTIE 4 : DÉPLOIEMENT O2SWITCH (FTP) ---
   deploy-o2switch:
     name: "🚀 Déploiement O2Switch (FTP)"
     needs: [docker-build]
@@ -121,10 +121,10 @@ jobs:
 
     steps:
       - name: "📦 Récupération du code source"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@v4
 
       - name: "📥 Récupération du Build Frontend"
-        uses: actions/download-artifact@fa0a91b85d4f404e444306234a64ce7b34d7eb9c
+        uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: ./dist-frontend
