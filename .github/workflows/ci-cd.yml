@@ -141,7 +141,12 @@ jobs:
           lftp -e "
             set ftp:ssl-allow no;
             open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
-            mirror -R --delete --exclude .git --exclude vendor/ --exclude .env --exclude tests/ ./backend/ /groupe5/backend/;
+            mirror -R --delete \
+              --exclude ^\.git \
+              --exclude ^vendor/ \
+              --exclude ^\.env \
+              --exclude ^tests/ \
+              ./backend/ /public_html/groupe5/backend/;
             quit
           "
 
@@ -154,7 +159,8 @@ jobs:
           lftp -e "
             set ftp:ssl-allow no;
             open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
-            mirror -R --delete ./dist-frontend/ /groupe5/frontend/;
+            mirror -R --delete \
+              ./dist-frontend/ /public_html/groupe5/frontend/;
             quit
           "
 
