@@ -132,6 +132,18 @@ jobs:
       - name: "📦 Installation de lftp"
         run: sudo apt-get install -y lftp
 
+      # ✅ On installe vendor/ ICI pour qu'il soit présent lors du transfert FTP
+      - name: "📦 Installation Composer (pour le déploiement)"
+        uses: shivammathur/setup-php@cf4cade2721270509d5b1c766ab3549210a39a2a
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql, bcmath, gd, exif, pcntl
+
+      - name: "📦 Composer install (avec vendor/)"
+        working-directory: ./backend
+        run: composer install --no-interaction --optimize-autoloader --no-dev
+
+      # ✅ Déploiement Backend complet (avec vendor/) vers /public_html/groupe5/backend/
       - name: "🚀 Déploiement Backend via FTP"
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
@@ -140,16 +152,19 @@ jobs:
         run: |
           lftp -e "
             set ftp:ssl-allow no;
+            set net:timeout 30;
+            set net:max-retries 3;
+            set net:reconnect-interval-base 5;
             open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
-            mirror -R --delete \
-              --exclude ^\.git \
-              --exclude ^vendor/ \
+            mirror -R --delete --parallel=5 --verbose \
+              --exclude ^\.git/ \
               --exclude ^\.env \
               --exclude ^tests/ \
               ./backend/ /public_html/groupe5/backend/;
             quit
           "
 
+      # ✅ Déploiement du build React dans /public_html/groupe5/frontend/
       - name: "🚀 Déploiement Frontend via FTP"
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
@@ -158,8 +173,11 @@ jobs:
         run: |
           lftp -e "
             set ftp:ssl-allow no;
+            set net:timeout 30;
+            set net:max-retries 3;
+            set net:reconnect-interval-base 5;
             open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
-            mirror -R --delete \
+            mirror -R --delete --parallel=5 --verbose \
               ./dist-frontend/ /public_html/groupe5/frontend/;
             quit
           "
@@ -167,6 +185,7 @@ jobs:
       - name: "✨ Logs de fin Déploiement"
         run: |
           echo "✅ Déploiement FTP terminé avec succès !"
-          echo "🔗 URL : https://groupe5.cdwfs.net"
+          echo "🔗 URL Backend : https://groupe5.cdwfs.net/backend/public"
+          echo "🔗 URL Frontend : https://groupe5.cdwfs.net/frontend"
           echo "🕒 Heure : $(date)"
           echo "🆔 Commit : ${{ github.sha }}"
