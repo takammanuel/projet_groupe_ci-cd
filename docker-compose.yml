@@ -30,6 +30,8 @@ services:
       MYSQL_ROOT_PASSWORD: root
     ports:
       - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
 
   # Monitoring - Prometheus
   prometheus:
@@ -49,6 +51,13 @@ services:
       - "3001:3000"
     depends_on:
       - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
 
   # Collecteur de métriques système (Port externe 9101)
   node-exporter:
@@ -56,3 +65,18 @@ services:
     container_name: node_exporter_eval
     ports:
       - "9101:9100"
+
+  # Collecteur de métriques des conteneurs Docker
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+volumes:
+  db_data:
+  grafana_data:
