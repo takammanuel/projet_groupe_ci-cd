@@ -176,7 +176,7 @@ jobs:
               --exclude ^\.env \
               --exclude ^tests/ \
               --exclude ^vendor/ \
-              ./backend/ /public_html/grp5/backend/;
+              ./backend/ /public_html/groupe5/backend/;
             quit
           "
 
@@ -193,7 +193,7 @@ jobs:
             set net:reconnect-interval-base 5;
             open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
             mirror -R --parallel=5 --verbose \
-              ./dist-frontend/ /public_html/grp5/frontend/;
+              ./dist-frontend/ /public_html/groupe5/frontend/;
             quit
           "
 
@@ -208,7 +208,7 @@ jobs:
             set net:timeout 30;
             set net:max-retries 3;
             open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
-            put ./htaccess-root -o /public_html/grp5/.htaccess;
+            put ./htaccess-root -o /public_html/groupe5/.htaccess;
             quit
           "
 
