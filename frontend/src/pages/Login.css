@@ -52,7 +52,7 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: green;
+  border-color: orange;
 }
 
 .form-group input:disabled {
@@ -70,7 +70,7 @@
 }
 
 .btn-login {
-  background-color: blue;
+  background-color:green;
   color: white;
   padding: 14px;
   border: none;
@@ -82,7 +82,7 @@
 }
 
 .btn-login:hover:not(:disabled) {
-  background-color: blue;
+  background-color: green;
 }
 
 .btn-login:disabled {
