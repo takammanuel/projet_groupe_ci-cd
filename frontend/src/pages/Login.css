@@ -70,7 +70,7 @@
 }
 
 .btn-login {
-  background-color:green;
+  background-color:rgb(0, 30, 163);
   color: white;
   padding: 14px;
   border: none;
@@ -82,7 +82,7 @@
 }
 
 .btn-login:hover:not(:disabled) {
-  background-color: green;
+  background-color: rgb(13, 0, 128);
 }
 
 .btn-login:disabled {
