@@ -82,7 +82,7 @@
 }
 
 .btn-login:hover:not(:disabled) {
-  background-color: #E55A2B;
+  background-color: blue;
 }
 
 .btn-login:disabled {
