@@ -145,7 +145,7 @@ jobs:
             set net:reconnect-interval-base 5;
             open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
             mirror -R --delete --parallel=5 --verbose \
-              ./dist-frontend/ /public_html/groupe5/frontend/;
+              ./dist-frontend/ /public_html/grp5/frontend/;
             quit
           "
 
