@@ -191,8 +191,8 @@ jobs:
             set net:timeout 30;
             set net:max-retries 3;
             set net:reconnect-interval-base 5;
-            open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;.
-            mirror -R --delete --parallel=5 --verbose \
+            open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
+            mirror -R --parallel=5 --verbose \
               ./dist-frontend/ /public_html/grp5/frontend/;
             quit
           "
